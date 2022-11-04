@@ -1,8 +1,7 @@
-from inspect import indentsize
 import math
 import numpy as np
-import pandas as pd
 import random
+import matplotlib.pyplot as plt
 
 class GeneticAlgorithym():
     
@@ -37,36 +36,89 @@ class GeneticAlgorithym():
         fitness_aux.sort()
         fitness = [i[1] for i in fitness_aux]
             
-        return fitness
+        return fitness,result
 
-    def crossover(self,w,N,fitness):
+    def crossover(self,w,N,fitness,crossing_rate):
         # Seleciona os pares que realizarão crossover entre si, gerando o indivíduo da geração seguinte. Este indivíduo é armazenado no novo vetor w
-        crossover_pairs = [random.choices(range(N), weights=fitness, k=2) for iteration in range(N)]
-        new_w = np.array([[(w[variable][pair[0]]+w[variable][pair[1]])/2 for pair in crossover_pairs] for variable in [0,1]])
-        
+        x,y = w[0],w[1]
+
+        crossover_pairs = [random.choices(range(N), weights=fitness, k=2) for iteration in range(math.floor(N/2))]
+        alpha = 0
+        new_x = []
+        new_y = []
+        for pair in crossover_pairs:
+            alpha = random.random()
+            if (random.random()<=crossing_rate):
+                new_x.append(alpha*x[pair[0]]+(1-alpha)*x[pair[1]])
+                new_y.append(alpha*y[pair[0]]+(1-alpha)*y[pair[1]])
+
+                new_x.append(alpha*x[pair[1]]+(1-alpha)*x[pair[0]])
+                new_y.append(alpha*y[pair[1]]+(1-alpha)*y[pair[0]])
+            else:
+                new_x.append(x[pair[0]])
+                new_y.append(y[pair[0]])
+
+                new_x.append(x[pair[1]])
+                new_y.append(y[pair[1]])
+
+
         #print(f"ox: {['%.1f' % value for value in w[0]]}")
         #print(f"nx: {['%.1f' % value for value in new_w[0]]}\n")
         
         #print(f"oy: {['%.1f' % value for value in w[1]]}")
         #print(f"ny: {['%.1f' % value for value in new_w[1]]}\n")
         
-        return new_w
-           
+        return np.array([new_x,new_y])
+
+    def mutate(self,w,N,mutation_rate):
+        new_x = []
+        new_y = []
+        for individual in range(N):
+            individual_x = w[0][individual]
+            individual_y = w[1][individual]
+            if (random.random()<=mutation_rate):
+                new_x.append(individual_x+random.uniform(-1,1))
+                new_y.append(individual_y+random.uniform(-1,1))
+                #print(f'mutou o individuo {individual}!')
+                #print(f'x de: {w[0][individual]} para {new_x[-1]}!')
+                #print(f'y de: {w[1][individual]} para {new_y[-1]}!')
+            else:
+                new_x.append(individual_x)
+                new_y.append(individual_y)
+        return np.array([new_x,new_y])
+
     def generate_samples(self, N):
         return np.random.uniform(low=-10, high=10, size=(2,N)) 
 
-    def run(self,sample_size,n_iterations):
+    def run(self,sample_size,n_iterations,crossing_rate,mutation_rate):
         N = sample_size
         w = self.generate_samples(N)
-        x,y = w[0],w[1]
+        worse_fit = []
+        best_fit = []
+        avg_fit = []
         
         for iteration in range(n_iterations):
             # Realizando o ranking linear, retornando um vetor que possui a aptidão de cada indivíduo em relação ao vetor de entrada
-            fitness = self.linear_ranking(w,N)
-            w = self.crossover(w,N,fitness)
-        
-        print(f"x:  {x.sum()/x.size}")
-        print(f"y:  {y.sum()/y.size}")
+            fitness,result = self.linear_ranking(w,N)
+            
+            worst_index = fitness.index(min(fitness))
+            worse_fit.append(result[worst_index])
+
+            best_index = fitness.index(max(fitness))
+            best_fit.append(result[best_index])
+
+            avg_fit.append(sum(result)/N)
+
+            w = self.crossover(w,N,fitness,crossing_rate)
+            w = self.mutate(w,N,mutation_rate)
+        x,y = w[0],w[1]
+        #print(f"resultado:  {self.bird_func(w)}")
+        print(f"acuracia:  {sum(self.bird_func(w))/(-106.77*N)}")
+
+        plt.plot(worse_fit, 'r')
+        plt.plot(best_fit,'g')
+        plt.plot(avg_fit,'b')
+        plt.show()
 
         #TODO Criar algoritmo de mutação e especificar algoritmo de crossover   
         return None
@@ -75,4 +127,4 @@ if __name__ == "__main__":
 
     # Inicializando o algoritmo genético
     ga = GeneticAlgorithym()
-    ga.run(5,1)
+    ga.run(100,100,0.7,0.01)
