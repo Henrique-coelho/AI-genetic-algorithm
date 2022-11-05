@@ -35,7 +35,7 @@ class GeneticAlgorithym():
         fitness_aux = [(ranking_map[rank][0],math.floor(pos_min_result+(pos_max_result-pos_min_result)*(N-1-rank)/(N-1))) for rank in range(N)]
         fitness_aux.sort()
         fitness = [i[1] for i in fitness_aux]
-            
+        #print()
         return fitness,result
 
     def crossover(self,w,N,fitness,crossing_rate):
@@ -60,13 +60,6 @@ class GeneticAlgorithym():
 
                 new_x.append(x[pair[1]])
                 new_y.append(y[pair[1]])
-
-
-        #print(f"ox: {['%.1f' % value for value in w[0]]}")
-        #print(f"nx: {['%.1f' % value for value in new_w[0]]}\n")
-        
-        #print(f"oy: {['%.1f' % value for value in w[1]]}")
-        #print(f"ny: {['%.1f' % value for value in new_w[1]]}\n")
         
         return np.array([new_x,new_y])
 
@@ -79,9 +72,6 @@ class GeneticAlgorithym():
             if (random.random()<=mutation_rate):
                 new_x.append(individual_x+random.uniform(-1,1))
                 new_y.append(individual_y+random.uniform(-1,1))
-                #print(f'mutou o individuo {individual}!')
-                #print(f'x de: {w[0][individual]} para {new_x[-1]}!')
-                #print(f'y de: {w[1][individual]} para {new_y[-1]}!')
             else:
                 new_x.append(individual_x)
                 new_y.append(individual_y)
@@ -111,20 +101,12 @@ class GeneticAlgorithym():
 
             w = self.crossover(w,N,fitness,crossing_rate)
             w = self.mutate(w,N,mutation_rate)
-        x,y = w[0],w[1]
-        #print(f"resultado:  {self.bird_func(w)}")
         print(f"acuracia:  {sum(self.bird_func(w))/(-106.77*N)}")
-
-        plt.plot(worse_fit, 'r')
-        plt.plot(best_fit,'g')
-        plt.plot(avg_fit,'b')
-        plt.show()
-
-        #TODO Criar algoritmo de mutação e especificar algoritmo de crossover   
-        return None
+        best_x = w[0][len(w[0])-1]
+        best_y = w[1][len(w[1])-1]
+        return worse_fit, best_fit, avg_fit, [best_x, best_y]
 
 if __name__ == "__main__":
-
     # Inicializando o algoritmo genético
     ga = GeneticAlgorithym()
     ga.run(100,100,0.7,0.01)
