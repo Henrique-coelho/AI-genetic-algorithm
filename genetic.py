@@ -101,10 +101,9 @@ class GeneticAlgorithym():
 
             w = self.crossover(w,N,fitness,crossing_rate)
             w = self.mutate(w,N,mutation_rate)
-        print(f"acuracia:  {sum(self.bird_func(w))/(-106.77*N)}")
         best_x = w[0][len(w[0])-1]
         best_y = w[1][len(w[1])-1]
-        return worse_fit, best_fit, avg_fit, [best_x, best_y]
+        return worse_fit,best_fit,avg_fit,[best_x, best_y],w
 
 if __name__ == "__main__":
     # Inicializando o algoritmo genético
